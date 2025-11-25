@@ -12,7 +12,7 @@
 	},
 	"d1_databases": [
 		{
-			"binding": "weather_test",
+			"binding": "DB",
 			"database_name": "weather_test",
 			"database_id": "f35ab057-552b-48ef-9e1a-a71adb86803a",
 			"remote": true
