@@ -10,7 +10,7 @@
 
 export default {
 	async fetch(request, env, ctx) {
-		console.log(env);
+		//console.log(env);
 
 		const url = new URL(request.url);
 
@@ -25,7 +25,18 @@ export default {
 
 				const data = await request.json();
 
-				const timestamp = new Date().toISOString();
+				let timestamp;
+				const payload_ts = data['timestamp'];
+				let parsed_ts = new Date(payload_ts);
+				if (parsed_ts) {
+					timestamp = parsed_ts.toISOString();
+				}
+				else {
+					// invalid timestamp in payload, inject this istant
+					timestamp = new Date().toISOString();
+					data['timestamp'] = timestamp;
+				}
+
 				const payload = JSON.stringify(data);
 
 				// noinspection JSUnresolvedReference
