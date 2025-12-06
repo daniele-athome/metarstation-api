@@ -10,14 +10,34 @@
 	"observability": {
 		"enabled": true
 	},
-	"d1_databases": [
-		{
-			"binding": "DB",
-			"database_name": "weather_test",
-			"database_id": "f35ab057-552b-48ef-9e1a-a71adb86803a",
-			"remote": true
+	"env": {
+		"local": {
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "weather_test",
+					"database_id": "f35ab057-552b-48ef-9e1a-a71adb86803a",
+					"remote": false
+				}
+			],
+			"vars": {
+				"API_TOKEN": "api_token"
+			}
+		},
+		"production": {
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "weather_test",
+					"database_id": "f35ab057-552b-48ef-9e1a-a71adb86803a",
+					"remote": true
+				}
+			],
+			"vars": {
+				// API_TOKEN is a secret
+			}
 		}
-	]
+	}
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
