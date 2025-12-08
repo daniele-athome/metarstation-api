@@ -1,5 +1,5 @@
 CREATE TABLE measurements (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  timestamp TEXT NOT NULL,
+  timestamp TEXT NOT NULL UNIQUE,
   payload TEXT NOT NULL
 );

@@ -23,25 +23,44 @@ export default {
 					return new Response("Unauthorized", { status: 401 });
 				}
 
-				const data = await request.json();
-
-				let timestamp;
-				const payload_ts = data['timestamp'];
-				let parsed_ts = new Date(payload_ts);
-				if (parsed_ts) {
-					timestamp = parsed_ts.toISOString();
+				let data_list;
+				const parsed_data = await request.json();
+				if (!Array.isArray(parsed_data)) {
+					data_list = [parsed_data];
 				}
 				else {
-					// invalid timestamp in payload, inject this istant
-					timestamp = new Date().toISOString();
-					data['timestamp'] = timestamp;
+					data_list = parsed_data;
 				}
 
-				const payload = JSON.stringify(data);
+				if (data_list.length > 100) {
+					return new Response("Too much data", { status: 400 });
+				}
 
+				let batch = [];
+				for (const data of data_list) {
+					let timestamp;
+					const payload_ts = data['timestamp'];
+					let parsed_ts = payload_ts ? new Date(payload_ts) : null;
+					if (parsed_ts) {
+						timestamp = parsed_ts.toISOString();
+					}
+					else {
+						// invalid timestamp in payload, inject this istant
+						timestamp = new Date().toISOString();
+						data['timestamp'] = timestamp;
+					}
+
+					const payload = JSON.stringify(data);
+
+					batch.push(timestamp, payload);
+				}
+
+				const placeholders = Array(batch.length / 2).fill('(?, ?)').join(', ');
+
+				// TODO catch duplicate key errors and return 409
 				// noinspection JSUnresolvedReference
-				const stmt = env.DB.prepare(`INSERT INTO measurements (timestamp, payload) VALUES (?, ?)`);
-				await stmt.bind(timestamp, payload).run();
+				const stmt = env.DB.prepare(`INSERT OR REPLACE INTO measurements (timestamp, payload) VALUES ${placeholders}`);
+				await stmt.bind(...batch).run();
 
 				// clean up old entries
 				// noinspection JSUnresolvedReference
@@ -49,7 +68,6 @@ export default {
 
 				return new Response(JSON.stringify({
 					status: "ok",
-					stored_at: timestamp
 				}), {
 					headers: { "Content-Type": "application/json" },
 					status: 201,
