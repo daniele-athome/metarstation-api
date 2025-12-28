@@ -16,6 +16,11 @@ export default {
 
 		if (request.method === "POST" && url.pathname === "/push") {
 			try {
+				// assume wrong configuration
+				if (!env.API_TOKEN) {
+					return new Response("Unauthorized", { status: 401 });
+				}
+
 				const auth = request.headers.get("Authorization");
 
 				// noinspection JSUnresolvedReference
