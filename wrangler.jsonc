@@ -21,7 +21,8 @@
 				}
 			],
 			"vars": {
-				"API_TOKEN": "api_token"
+				"API_TOKEN": "api_token",
+				"CORS_ORIGIN": "http://localhost:5173"
 			}
 		},
 		"production": {
@@ -35,6 +36,7 @@
 			],
 			"vars": {
 				// API_TOKEN is a secret
+				"CORS_ORIGIN": "https://TODO"
 			}
 		}
 	}

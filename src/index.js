@@ -16,8 +16,9 @@ export default {
 
 		if (request.method === "POST" && url.pathname === "/push") {
 			try {
-				// assume wrong configuration
+				// noinspection JSUnresolvedReference
 				if (!env.API_TOKEN) {
+					// assume wrong configuration
 					return new Response("Unauthorized", { status: 401 });
 				}
 
@@ -63,7 +64,6 @@ export default {
 
 				const placeholders = Array(batch.length / 2).fill('(?, ?)').join(', ');
 
-				// TODO catch duplicate key errors and return 409
 				// noinspection JSUnresolvedReference
 				const stmt = env.DB.prepare(`INSERT OR REPLACE INTO measurements (timestamp, payload) VALUES ${placeholders}`);
 				await stmt.bind(...batch).run();
@@ -95,13 +95,14 @@ export default {
 			const stmt = env.DB.prepare(`SELECT timestamp, payload FROM measurements ORDER BY timestamp DESC LIMIT ?`);
 			const result = await stmt.bind(limit).all();
 
-			const formatted = result.results.map(row => ({
-				timestamp: row.timestamp,
-				data: JSON.parse(row.payload)
-			}));
+			const formatted = result.results.map(row => JSON.parse(row.payload));
 
+			// noinspection JSUnresolvedReference
 			return new Response(JSON.stringify(formatted), {
-				headers: { "Content-Type": "application/json" }
+				headers: {
+					"Content-Type": "application/json",
+					"Access-Control-Allow-Origin": env.CORS_ORIGIN,
+				}
 			});
 		}
 
