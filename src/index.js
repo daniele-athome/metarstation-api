@@ -37,7 +37,8 @@ export default {
 					data_list = parsed_data;
 				}
 
-				if (data_list.length > 100) {
+				// D1 has a limit of 100 bound variables (we insert 2 columns)
+				if (data_list.length > 50) {
 					return new Response("Too much data", { status: 400 });
 				}
 
