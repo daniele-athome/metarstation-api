@@ -22,7 +22,35 @@
 			],
 			"vars": {
 				"API_TOKEN": "api_token",
-				"CORS_ORIGIN": "http://localhost:5173"
+				"CORS_ORIGIN": "http://localhost:5173",
+				"METAR_STATION": "LIRF",
+				"METAR_TEST_RESPONSE": {
+					"icaoId": "LIRE",
+					"receiptTime": "2025-12-31T17:08:23.796Z",
+					"obsTime": 1767200100,
+					"reportTime": "2025-12-31T17:00:00.000Z",
+					"temp": 9,
+					"dewp": 0,
+					"wdir": 20,
+					"wspd": 4,
+					"visib": "6+",
+					"altim": 1017,
+					"qcField": 0,
+					"metarType": "METAR",
+					"rawOb": "METAR LIRE 311655Z 02004KT 9999 BKN030 09/M00 Q1017 RMK BKN VIS MIN 9999 WIND THR13 /////KT WIND THR31 /////KT BLU",
+					"lat": 41.656,
+					"lon": 12.449,
+					"elev": 16,
+					"name": "Pratica di Mare, RM, IT",
+					"cover": "BKN",
+					"clouds": [
+						{
+							"cover": "BKN",
+							"base": 3000
+						}
+					],
+					"fltCat": "MVFR"
+				}
 			}
 		},
 		"production": {
@@ -36,7 +64,8 @@
 			],
 			"vars": {
 				// API_TOKEN is a secret
-				"CORS_ORIGIN": "https://TODO"
+				"CORS_ORIGIN": "https://TODO",
+				"METAR_STATION": "LIRF"
 			}
 		}
 	}

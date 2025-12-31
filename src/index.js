@@ -106,6 +106,41 @@ export default {
 			});
 		}
 
+		else if (request.method === "GET" && url.pathname === "/metar") {
+			if (env.hasOwnProperty('METAR_TEST_RESPONSE')) {
+				return new Response(JSON.stringify(env.METAR_TEST_RESPONSE), {
+					headers: {
+						"Content-Type": "application/json",
+						"Access-Control-Allow-Origin": env.CORS_ORIGIN,
+					}
+				})
+			}
+
+			const metarRequest = await fetch(
+				'https://aviationweather.gov/api/data/metar?ids='+env.METAR_STATION+'&format=json',
+				{
+					headers: {
+						'User-Agent': 'casaricci/weather-test-api',
+					}
+				}
+			);
+
+			const metarData = await metarRequest.json();
+			if (metarData && metarData.length > 0) {
+				return new Response(JSON.stringify(metarData[0]), {
+					headers: {
+						"Content-Type": "application/json",
+						"Access-Control-Allow-Origin": env.CORS_ORIGIN,
+					}
+				});
+			}
+			else {
+				return new Response('{}', {
+					status: 204,
+				});
+			}
+		}
+
 		return new Response("Not found", { status: 404 });
 	},
 };
