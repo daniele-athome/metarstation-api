@@ -109,13 +109,25 @@ export default {
 			});
 		} else if (request.method === "GET" && url.pathname === "/metar") {
 			if (env.hasOwnProperty('METAR_TEST_RESPONSE')) {
-				// noinspection JSUnresolvedReference
-				return new Response(JSON.stringify(env.METAR_TEST_RESPONSE), {
-					headers: {
-						"Content-Type": "application/json",
-						"Access-Control-Allow-Origin": env.CORS_ORIGIN,
-					}
-				})
+				if (env.METAR_TEST_RESPONSE) {
+					// noinspection JSUnresolvedReference
+					return new Response(JSON.stringify(env.METAR_TEST_RESPONSE), {
+						headers: {
+							"Content-Type": "application/json",
+							"Access-Control-Allow-Origin": env.CORS_ORIGIN,
+						}
+					});
+				}
+				else {
+					// noinspection JSUnresolvedReference
+					return new Response(null, {
+						status: 204,
+						headers: {
+							"Access-Control-Allow-Origin": env.CORS_ORIGIN,
+						}
+					});
+
+				}
 			}
 
 			// noinspection JSUnresolvedReference
