@@ -141,8 +141,12 @@ export default {
 				}
 			}
 
+			// noinspection JSUnresolvedReference
 			return new Response(null, {
 				status: 204,
+				headers: {
+					"Access-Control-Allow-Origin": env.CORS_ORIGIN,
+				}
 			});
 		}
 
