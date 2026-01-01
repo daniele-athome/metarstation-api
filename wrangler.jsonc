@@ -64,8 +64,8 @@
 			],
 			"vars": {
 				// API_TOKEN is a secret
-				"CORS_ORIGIN": "https://TODO",
-				"METAR_STATION": "LIRF"
+				"CORS_ORIGIN": "https://daniele-athome.github.io",
+				"METAR_STATION": "LIRG"
 			}
 		}
 	}
