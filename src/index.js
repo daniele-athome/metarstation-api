@@ -141,7 +141,7 @@ export default {
 				}
 			}
 
-			return new Response('{}', {
+			return new Response(null, {
 				status: 204,
 			});
 		}
