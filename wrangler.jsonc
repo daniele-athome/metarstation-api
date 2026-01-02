@@ -23,33 +23,31 @@
 			"vars": {
 				"API_TOKEN": "api_token",
 				"CORS_ORIGIN": "http://localhost:5173",
-				"METAR_STATION": "LIRF",
+				"METAR_STATION": "LIRG",
 				"METAR_TEST_RESPONSE": {
-					"icaoId": "LIRE",
-					"receiptTime": "2025-12-31T17:08:23.796Z",
-					"obsTime": 1767200100,
-					"reportTime": "2025-12-31T17:00:00.000Z",
-					"temp": 9,
-					"dewp": 0,
-					"wdir": 20,
-					"wspd": 4,
+					"icaoId": "LIRG",
+					"receiptTime": "2026-01-02T11:10:38.859Z",
+					"obsTime": 1767351300,
+					"reportTime": "2026-01-02T11:00:00.000Z",
+					"temp": 12,
+					"dewp": 8,
 					"visib": "6+",
-					"altim": 1017,
+					"altim": 1012,
 					"qcField": 0,
 					"metarType": "METAR",
-					"rawOb": "METAR LIRE 311655Z 02004KT 9999 BKN030 09/M00 Q1017 RMK BKN VIS MIN 9999 WIND THR13 /////KT WIND THR31 /////KT BLU",
-					"lat": 41.656,
-					"lon": 12.449,
-					"elev": 16,
-					"name": "Pratica di Mare, RM, IT",
-					"cover": "BKN",
+					"rawOb": "METAR LIRG 021055Z /////KT 9999 FEW030 12/08 Q1012",
+					"lat": 41.996,
+					"lon": 12.735,
+					"elev": 82,
+					"name": "Guidonia, RM, IT",
+					"cover": "FEW",
 					"clouds": [
 						{
-							"cover": "BKN",
+							"cover": "FEW",
 							"base": 3000
 						}
 					],
-					"fltCat": "MVFR"
+					"fltCat": "VFR"
 				}
 			}
 		},
