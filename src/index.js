@@ -70,7 +70,7 @@ export default {
 
 				// clean up old entries
 				// noinspection JSUnresolvedReference
-				await env.DB.exec(`DELETE FROM measurements WHERE timestamp < datetime('now', '-24 hours')`);
+				await env.DB.exec(`DELETE FROM measurements WHERE timestamp < datetime('now', '-12 hours')`);
 
 				return new Response(JSON.stringify({
 					status: "ok",
