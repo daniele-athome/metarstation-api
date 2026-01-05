@@ -100,7 +100,7 @@ export default {
 
 				// noinspection JSUnresolvedReference
 				await env.IMAGE.put(env.IMAGE_KEY, request.body, {
-					onlyIf: request.headers,
+					//onlyIf: request.headers,
 					httpMetadata: request.headers,
 				});
 
@@ -142,7 +142,7 @@ export default {
 
 			// noinspection JSUnresolvedReference
 			const object = await env.IMAGE.get(env.IMAGE_KEY, {
-				onlyIf: request.headers,
+				//onlyIf: request.headers,
 				range: request.headers,
 			});
 			if (object === null) {
