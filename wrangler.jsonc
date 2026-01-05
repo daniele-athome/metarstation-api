@@ -20,9 +20,16 @@
 					"remote": false
 				}
 			],
+			"r2_buckets": [
+				{
+					"bucket_name": "weather-test",
+					"binding": "IMAGE"
+				}
+			],
 			"vars": {
 				"API_TOKEN": "api_token",
 				"CORS_ORIGIN": "http://localhost:5173",
+				"IMAGE_KEY": "webcam-default",
 				"METAR_STATION": "LIRG",
 				"METAR_TEST_RESPONSE": {
 					"icaoId": "LIRG",
@@ -63,8 +70,15 @@
 			"vars": {
 				// API_TOKEN is a secret
 				"CORS_ORIGIN": "https://daniele-athome.github.io",
+				"IMAGE_KEY": "webcam-default",
 				"METAR_STATION": "LIRG"
-			}
+			},
+			"r2_buckets": [
+				{
+					"bucket_name": "weather-test",
+					"binding": "IMAGE"
+				}
+			]
 		}
 	}
 	/**

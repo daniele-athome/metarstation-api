@@ -83,6 +83,41 @@ export default {
 					error: err.message
 				}), {status: 500});
 			}
+		} else if (request.method === "POST" && url.pathname === "/image") {
+			try {
+				// noinspection JSUnresolvedReference
+				if (!env.API_TOKEN) {
+					// assume wrong configuration
+					return new Response("Unauthorized", {status: 401});
+				}
+
+				const auth = request.headers.get("Authorization");
+
+				// noinspection JSUnresolvedReference
+				if (!auth || auth !== `Bearer ${env.API_TOKEN}`) {
+					return new Response("Unauthorized", {status: 401});
+				}
+
+				// noinspection JSUnresolvedReference
+				await env.IMAGE.put(env.IMAGE_KEY, request.body, {
+					onlyIf: request.headers,
+					httpMetadata: request.headers,
+				});
+
+				return new Response(JSON.stringify({
+					status: "ok",
+				}), {
+					headers: {"Content-Type": "application/json"},
+					status: 201,
+				});
+
+			} catch (err) {
+				console.error(err);
+				return new Response(JSON.stringify({
+					status: "error",
+					error: err.message
+				}), {status: 500});
+			}
 		} else if (request.method === "GET" && url.pathname === "/latest") {
 
 			const limit = parseInt(url.searchParams.get("limit") || "10");
@@ -103,6 +138,27 @@ export default {
 					"Access-Control-Allow-Origin": env.CORS_ORIGIN,
 				}
 			});
+		} else if (request.method === "GET" && url.pathname === "/image") {
+
+			// noinspection JSUnresolvedReference
+			const object = await env.IMAGE.get(env.IMAGE_KEY, {
+				onlyIf: request.headers,
+				range: request.headers,
+			});
+			if (object === null) {
+				return new Response("Object Not Found", {status: 404});
+			}
+
+			const headers = new Headers();
+			object.writeHttpMetadata(headers);
+			headers.set("etag", object.httpEtag);
+
+			// When no body is present, preconditions have failed
+			return new Response("body" in object ? object.body : undefined, {
+				status: "body" in object ? 200 : 404,
+				headers,
+			});
+
 		} else if (request.method === "GET" && url.pathname === "/metar") {
 			if (env.hasOwnProperty('METAR_TEST_RESPONSE')) {
 				if (env.METAR_TEST_RESPONSE) {
