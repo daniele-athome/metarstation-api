@@ -63,9 +63,7 @@ export default {
 				const placeholders = Array(batch.length / 2).fill('(?, ?)').join(', ');
 
 				// noinspection JSUnresolvedReference
-				const stmt = env.DB.prepare(`INSERT OR
-											 REPLACE INTO measurements (timestamp, payload)
-											 VALUES ${placeholders}`);
+				const stmt = env.DB.prepare(`INSERT OR REPLACE INTO measurements (timestamp, payload) VALUES ${placeholders}`);
 				await stmt.bind(...batch).run();
 
 				// clean up old entries
@@ -115,8 +113,7 @@ export default {
 							"Access-Control-Allow-Origin": env.CORS_ORIGIN,
 						}
 					});
-				}
-				else {
+				} else {
 					// noinspection JSUnresolvedReference
 					return new Response(null, {
 						status: 204,
