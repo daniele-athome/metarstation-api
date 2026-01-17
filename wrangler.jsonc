@@ -62,8 +62,8 @@
 			"d1_databases": [
 				{
 					"binding": "DB",
-					"database_name": "weather_test",
-					"database_id": "f35ab057-552b-48ef-9e1a-a71adb86803a",
+					"database_name": "weather_gallicano",
+					"database_id": "d7363e0c-401a-4ba7-9dba-5437953cea99",
 					"remote": true
 				}
 			],
@@ -75,7 +75,7 @@
 			},
 			"r2_buckets": [
 				{
-					"bucket_name": "weather-test",
+					"bucket_name": "weather-gallicano",
 					"binding": "IMAGE"
 				}
 			]
