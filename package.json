@@ -3,7 +3,7 @@
 	"version": "0.0.0",
 	"private": true,
 	"scripts": {
-		"deploy": "wrangler deploy --env production",
+		"deploy": "wrangler deploy --env production-gallicano",
 		"dev": "wrangler dev --env local",
 		"start": "wrangler dev --env local",
 		"test": "vitest"

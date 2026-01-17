@@ -4,7 +4,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "weather-test",
+	"name": "weather-station",
 	"main": "src/index.js",
 	"compatibility_date": "2025-11-21",
 	"observability": {
@@ -58,7 +58,13 @@
 				}
 			}
 		},
-		"production": {
+		"production-gallicano": {
+			"routes": [
+				{
+					"pattern": "gallicano.weather-station.work/*",
+					"zone_name": "weather-station.work"
+				}
+			],
 			"d1_databases": [
 				{
 					"binding": "DB",
