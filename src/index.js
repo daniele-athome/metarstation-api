@@ -102,15 +102,20 @@ export default {
 					return new Response("Missing content type", {status: 400});
 				}
 
+				const timestamp = url.searchParams.get('timestamp');
+				const parsed_ts = timestamp ? new Date(timestamp) : new Date();
+
 				// noinspection JSUnresolvedReference
 				await env.IMAGE.put(env.IMAGE_KEY, request.body, {
 					httpMetadata: new Headers({
 						"content-type": request.headers.get("content-type"),
 						"content-length": request.headers.get("content-length") || "0",
-						// TODO age should be set by the client (in a custom header probably)
-						"cache-control": request.headers.get("cache-control") || "public,max-age=180,stale-while-revalidate=300",
 						"accept-ranges": request.headers.get("accept-ranges") || "*",
-					})
+					}),
+					customMetadata: {
+						// TODO an age or expire timestamp should be provided by the client
+						'timestamp': parsed_ts.toISOString(),
+					},
 				});
 
 				return new Response(JSON.stringify({
@@ -160,6 +165,14 @@ export default {
 			const headers = new Headers();
 			object.writeHttpMetadata(headers);
 			headers.set("etag", object.httpEtag);
+
+			//const timestamp = new Date(object.customMetadata.timestamp);
+			//if (timestamp) {
+				// TODO use the timestamp to generate a cache-control header
+				// TODO age should be set by the client (in a custom header probably)
+				//"cache-control": request.headers.get("cache-control") || "public,max-age=180,stale-while-revalidate=300",
+				//headers.set('cache-control', '');
+			//}
 
 			// When no body is present, preconditions have failed
 			return new Response("body" in object ? object.body : undefined, {
