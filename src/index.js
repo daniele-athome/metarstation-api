@@ -151,7 +151,6 @@ export default {
 
 			// noinspection JSUnresolvedReference
 			const object = await env.IMAGE.get(env.IMAGE_KEY, {
-				//onlyIf: request.headers,
 				range: request.headers,
 			});
 			if (object === null) {
