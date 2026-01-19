@@ -98,10 +98,19 @@ export default {
 					return new Response("Unauthorized", {status: 401});
 				}
 
+				if (!request.headers.has('content-type')) {
+					return new Response("Missing content type", {status: 400});
+				}
+
 				// noinspection JSUnresolvedReference
 				await env.IMAGE.put(env.IMAGE_KEY, request.body, {
-					//onlyIf: request.headers,
-					httpMetadata: request.headers,
+					httpMetadata: new Headers({
+						"content-type": request.headers.get("content-type"),
+						"content-length": request.headers.get("content-length") || "0",
+						// TODO age should be set by the client (in a custom header probably)
+						"cache-control": request.headers.get("cache-control") || "public,max-age=180,stale-while-revalidate=300",
+						"accept-ranges": request.headers.get("accept-ranges") || "*",
+					})
 				});
 
 				return new Response(JSON.stringify({
