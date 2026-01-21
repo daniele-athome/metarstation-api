@@ -1,16 +1,16 @@
 {
-	"name": "weather-test",
-	"version": "0.0.0",
-	"private": true,
-	"scripts": {
-		"deploy": "wrangler deploy --env production-gallicano",
-		"dev": "wrangler dev --env local",
-		"start": "wrangler dev --env local",
-		"test": "vitest"
-	},
-	"devDependencies": {
-		"@cloudflare/vitest-pool-workers": "^0.8.19",
-		"vitest": "~3.2.0",
-		"wrangler": "^4.53.0"
-	}
+  "name": "weather-test",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy --env production-gallicano",
+    "dev": "wrangler dev --env local",
+    "start": "wrangler dev --env local",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.8.19",
+    "vitest": "~3.2.0",
+    "wrangler": "^4.53.0"
+  }
 }

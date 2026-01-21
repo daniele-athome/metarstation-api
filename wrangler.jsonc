@@ -3,118 +3,118 @@
  * https://developers.cloudflare.com/workers/wrangler/configuration/
  */
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "weather-station",
-	"main": "src/index.js",
-	"compatibility_date": "2025-11-21",
-	"observability": {
-		"enabled": true
-	},
-	"env": {
-		"local": {
-			"d1_databases": [
-				{
-					"binding": "DB",
-					"database_name": "weather_test",
-					"database_id": "f35ab057-552b-48ef-9e1a-a71adb86803a",
-					"remote": false
-				}
-			],
-			"r2_buckets": [
-				{
-					"bucket_name": "weather-test",
-					"binding": "IMAGE"
-				}
-			],
-			"vars": {
-				"API_TOKEN": "api_token",
-				"CORS_ORIGIN": "http://localhost:5173",
-				"IMAGE_KEY": "webcam-default",
-				"METAR_STATION": "LIRG",
-				"METAR_TEST_RESPONSE": {
-					"icaoId": "LIRG",
-					"receiptTime": "2026-01-02T11:10:38.859Z",
-					"obsTime": 1767351300,
-					"reportTime": "2026-01-02T11:00:00.000Z",
-					"temp": 12,
-					"dewp": 8,
-					"visib": "6+",
-					"altim": 1012,
-					"qcField": 0,
-					"metarType": "METAR",
-					"rawOb": "METAR LIRG 021055Z /////KT 9999 FEW030 12/08 Q1012",
-					"lat": 41.996,
-					"lon": 12.735,
-					"elev": 82,
-					"name": "Guidonia, RM, IT",
-					"cover": "FEW",
-					"clouds": [
-						{
-							"cover": "FEW",
-							"base": 3000
-						}
-					],
-					"fltCat": "VFR"
-				}
-			}
-		},
-		"production-gallicano": {
-			"routes": [
-				{
-					"pattern": "gallicano.weather-station.work/*",
-					"zone_name": "weather-station.work"
-				}
-			],
-			"d1_databases": [
-				{
-					"binding": "DB",
-					"database_name": "weather_gallicano",
-					"database_id": "d7363e0c-401a-4ba7-9dba-5437953cea99",
-					"remote": true
-				}
-			],
-			"vars": {
-				// API_TOKEN is a secret
-				"CORS_ORIGIN": "https://daniele-athome.github.io",
-				"IMAGE_KEY": "webcam-default",
-				"METAR_STATION": "LIRG"
-			},
-			"r2_buckets": [
-				{
-					"bucket_name": "weather-gallicano",
-					"binding": "IMAGE"
-				}
-			]
-		}
-	}
-	/**
-	 * Smart Placement
-	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
-	 */
-	// "placement": { "mode": "smart" }
-	/**
-	 * Bindings
-	 * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
-	 * databases, object storage, AI inference, real-time communication and more.
-	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
-	 */
-	/**
-	 * Environment Variables
-	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
-	 */
-	// "vars": { "MY_VARIABLE": "production_value" }
-	/**
-	 * Note: Use secrets to store sensitive data.
-	 * https://developers.cloudflare.com/workers/configuration/secrets/
-	 */
-	/**
-	 * Static Assets
-	 * https://developers.cloudflare.com/workers/static-assets/binding/
-	 */
-	// "assets": { "directory": "./public/", "binding": "ASSETS" }
-	/**
-	 * Service Bindings (communicate between multiple Workers)
-	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
-	 */
-	// "services": [{ "binding": "MY_SERVICE", "service": "my-service" }]
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "weather-station",
+  "main": "src/index.js",
+  "compatibility_date": "2025-11-21",
+  "observability": {
+    "enabled": true
+  },
+  "env": {
+    "local": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "weather_test",
+          "database_id": "f35ab057-552b-48ef-9e1a-a71adb86803a",
+          "remote": false
+        }
+      ],
+      "r2_buckets": [
+        {
+          "bucket_name": "weather-test",
+          "binding": "IMAGE"
+        }
+      ],
+      "vars": {
+        "API_TOKEN": "api_token",
+        "CORS_ORIGIN": "http://localhost:5173",
+        "IMAGE_KEY": "webcam-default",
+        "METAR_STATION": "LIRG",
+        "METAR_TEST_RESPONSE": {
+          "icaoId": "LIRG",
+          "receiptTime": "2026-01-02T11:10:38.859Z",
+          "obsTime": 1767351300,
+          "reportTime": "2026-01-02T11:00:00.000Z",
+          "temp": 12,
+          "dewp": 8,
+          "visib": "6+",
+          "altim": 1012,
+          "qcField": 0,
+          "metarType": "METAR",
+          "rawOb": "METAR LIRG 021055Z /////KT 9999 FEW030 12/08 Q1012",
+          "lat": 41.996,
+          "lon": 12.735,
+          "elev": 82,
+          "name": "Guidonia, RM, IT",
+          "cover": "FEW",
+          "clouds": [
+            {
+              "cover": "FEW",
+              "base": 3000
+            }
+          ],
+          "fltCat": "VFR"
+        }
+      }
+    },
+    "production-gallicano": {
+      "routes": [
+        {
+          "pattern": "gallicano.weather-station.work/*",
+          "zone_name": "weather-station.work"
+        }
+      ],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "weather_gallicano",
+          "database_id": "d7363e0c-401a-4ba7-9dba-5437953cea99",
+          "remote": true
+        }
+      ],
+      "vars": {
+        // API_TOKEN is a secret
+        "CORS_ORIGIN": "https://daniele-athome.github.io",
+        "IMAGE_KEY": "webcam-default",
+        "METAR_STATION": "LIRG"
+      },
+      "r2_buckets": [
+        {
+          "bucket_name": "weather-gallicano",
+          "binding": "IMAGE"
+        }
+      ]
+    }
+  }
+  /**
+   * Smart Placement
+   * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
+   */
+  // "placement": { "mode": "smart" }
+  /**
+   * Bindings
+   * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
+   * databases, object storage, AI inference, real-time communication and more.
+   * https://developers.cloudflare.com/workers/runtime-apis/bindings/
+   */
+  /**
+   * Environment Variables
+   * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
+   */
+  // "vars": { "MY_VARIABLE": "production_value" }
+  /**
+   * Note: Use secrets to store sensitive data.
+   * https://developers.cloudflare.com/workers/configuration/secrets/
+   */
+  /**
+   * Static Assets
+   * https://developers.cloudflare.com/workers/static-assets/binding/
+   */
+  // "assets": { "directory": "./public/", "binding": "ASSETS" }
+  /**
+   * Service Bindings (communicate between multiple Workers)
+   * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
+   */
+  // "services": [{ "binding": "MY_SERVICE", "service": "my-service" }]
 }

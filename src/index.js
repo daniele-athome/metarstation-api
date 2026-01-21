@@ -9,231 +9,237 @@
  */
 
 export default {
-	async fetch(request, env, ctx) {
-		//console.log(env);
+    async fetch(request, env, ctx) {
+        //console.log(env);
 
-		const url = new URL(request.url);
+        const url = new URL(request.url);
 
-		if (request.method === "POST" && url.pathname === "/push") {
-			try {
-				// noinspection JSUnresolvedReference
-				if (!env.API_TOKEN) {
-					// assume wrong configuration
-					return new Response("Unauthorized", {status: 401});
-				}
+        if (request.method === "POST" && url.pathname === "/push") {
+            try {
+                // noinspection JSUnresolvedReference
+                if (!env.API_TOKEN) {
+                    // assume wrong configuration
+                    return new Response("Unauthorized", {status: 401});
+                }
 
-				const auth = request.headers.get("Authorization");
+                const auth = request.headers.get("Authorization");
 
-				// noinspection JSUnresolvedReference
-				if (!auth || auth !== `Bearer ${env.API_TOKEN}`) {
-					return new Response("Unauthorized", {status: 401});
-				}
+                // noinspection JSUnresolvedReference
+                if (!auth || auth !== `Bearer ${env.API_TOKEN}`) {
+                    return new Response("Unauthorized", {status: 401});
+                }
 
-				let data_list;
-				const parsed_data = await request.json();
-				if (!Array.isArray(parsed_data)) {
-					data_list = [parsed_data];
-				} else {
-					data_list = parsed_data;
-				}
+                let data_list;
+                const parsed_data = await request.json();
+                if (!Array.isArray(parsed_data)) {
+                    data_list = [parsed_data];
+                } else {
+                    data_list = parsed_data;
+                }
 
-				// D1 has a limit of 100 bound variables (we insert 2 columns)
-				if (data_list.length > 50) {
-					return new Response("Too much data", {status: 400});
-				}
+                // D1 has a limit of 100 bound variables (we insert 2 columns)
+                if (data_list.length > 50) {
+                    return new Response("Too much data", {status: 400});
+                }
 
-				let batch = [];
-				for (const data of data_list) {
-					let timestamp;
-					const payload_ts = data['timestamp'];
-					let parsed_ts = payload_ts ? new Date(payload_ts) : null;
-					if (parsed_ts) {
-						timestamp = parsed_ts.toISOString();
-					} else {
-						// invalid timestamp in payload, inject this istant
-						timestamp = new Date().toISOString();
-						data['timestamp'] = timestamp;
-					}
+                let batch = [];
+                for (const data of data_list) {
+                    let timestamp;
+                    const payload_ts = data['timestamp'];
+                    let parsed_ts = payload_ts ? new Date(payload_ts) : null;
+                    if (parsed_ts) {
+                        timestamp = parsed_ts.toISOString();
+                    } else {
+                        // invalid timestamp in payload, inject this istant
+                        timestamp = new Date().toISOString();
+                        data['timestamp'] = timestamp;
+                    }
 
-					const payload = JSON.stringify(data);
+                    const payload = JSON.stringify(data);
 
-					batch.push(timestamp, payload);
-				}
+                    batch.push(timestamp, payload);
+                }
 
-				const placeholders = Array(batch.length / 2).fill('(?, ?)').join(', ');
+                const placeholders = Array(batch.length / 2).fill('(?, ?)').join(', ');
 
-				// noinspection JSUnresolvedReference
-				const stmt = env.DB.prepare(`INSERT OR REPLACE INTO measurements (timestamp, payload) VALUES ${placeholders}`);
-				await stmt.bind(...batch).run();
+                // noinspection JSUnresolvedReference
+                const stmt = env.DB.prepare(
+                    // language=SQL format=false
+                    `INSERT OR REPLACE INTO measurements (timestamp, payload) VALUES ${placeholders}`
+                );
+                await stmt.bind(...batch).run();
 
-				// clean up old entries
-				// noinspection JSUnresolvedReference
-				await env.DB.exec(`DELETE FROM measurements WHERE timestamp < datetime('now', '-12 hours')`);
+                // clean up old entries
+                // noinspection JSUnresolvedReference
+                await env.DB.exec(
+                    // language=SQL format=false
+                    `DELETE FROM measurements WHERE timestamp < datetime('now', '-12 hours')`
+                );
 
-				return new Response(JSON.stringify({
-					status: "ok",
-				}), {
-					headers: {"Content-Type": "application/json"},
-					status: 201,
-				});
-			} catch (err) {
-				console.error(err);
-				return new Response(JSON.stringify({
-					status: "error",
-					error: err.message
-				}), {status: 500});
-			}
-		} else if (request.method === "POST" && url.pathname === "/image") {
-			try {
-				// noinspection JSUnresolvedReference
-				if (!env.API_TOKEN) {
-					// assume wrong configuration
-					return new Response("Unauthorized", {status: 401});
-				}
+                return new Response(JSON.stringify({
+                    status: "ok",
+                }), {
+                    headers: {"Content-Type": "application/json"},
+                    status: 201,
+                });
+            } catch (err) {
+                console.error(err);
+                return new Response(JSON.stringify({
+                    status: "error",
+                    error: err.message
+                }), {status: 500});
+            }
+        } else if (request.method === "POST" && url.pathname === "/image") {
+            try {
+                // noinspection JSUnresolvedReference
+                if (!env.API_TOKEN) {
+                    // assume wrong configuration
+                    return new Response("Unauthorized", {status: 401});
+                }
 
-				const auth = request.headers.get("Authorization");
+                const auth = request.headers.get("Authorization");
 
-				// noinspection JSUnresolvedReference
-				if (!auth || auth !== `Bearer ${env.API_TOKEN}`) {
-					return new Response("Unauthorized", {status: 401});
-				}
+                // noinspection JSUnresolvedReference
+                if (!auth || auth !== `Bearer ${env.API_TOKEN}`) {
+                    return new Response("Unauthorized", {status: 401});
+                }
 
-				if (!request.headers.has('content-type')) {
-					return new Response("Missing content type", {status: 400});
-				}
+                if (!request.headers.has('content-type')) {
+                    return new Response("Missing content type", {status: 400});
+                }
 
-				const timestamp = url.searchParams.get('timestamp');
-				const parsed_ts = timestamp ? new Date(timestamp) : new Date();
+                const timestamp = url.searchParams.get('timestamp');
+                const parsed_ts = timestamp ? new Date(timestamp) : new Date();
 
-				// noinspection JSUnresolvedReference
-				await env.IMAGE.put(env.IMAGE_KEY, request.body, {
-					httpMetadata: new Headers({
-						"content-type": request.headers.get("content-type"),
-						"content-length": request.headers.get("content-length") || "0",
-						"accept-ranges": request.headers.get("accept-ranges") || "*",
-					}),
-					customMetadata: {
-						// TODO an age or expire timestamp should be provided by the client
-						'timestamp': parsed_ts.toISOString(),
-					},
-				});
+                // noinspection JSUnresolvedReference
+                await env.IMAGE.put(env.IMAGE_KEY, request.body, {
+                    httpMetadata: new Headers({
+                        "content-type": request.headers.get("content-type"),
+                        "content-length": request.headers.get("content-length") || "0",
+                        "accept-ranges": request.headers.get("accept-ranges") || "*",
+                    }),
+                    customMetadata: {
+                        // TODO an age or expire timestamp should be provided by the client
+                        'timestamp': parsed_ts.toISOString(),
+                    },
+                });
 
-				return new Response(JSON.stringify({
-					status: "ok",
-				}), {
-					headers: {"Content-Type": "application/json"},
-					status: 201,
-				});
+                return new Response(JSON.stringify({
+                    status: "ok",
+                }), {
+                    headers: {"Content-Type": "application/json"},
+                    status: 201,
+                });
 
-			} catch (err) {
-				console.error(err);
-				return new Response(JSON.stringify({
-					status: "error",
-					error: err.message
-				}), {status: 500});
-			}
-		} else if (request.method === "GET" && url.pathname === "/latest") {
+            } catch (err) {
+                console.error(err);
+                return new Response(JSON.stringify({
+                    status: "error",
+                    error: err.message
+                }), {status: 500});
+            }
+        } else if (request.method === "GET" && url.pathname === "/latest") {
 
-			const limit = parseInt(url.searchParams.get("limit") || "10");
+            const limit = parseInt(url.searchParams.get("limit") || "10");
 
-			// noinspection JSUnresolvedReference
-			const stmt = env.DB.prepare(`SELECT timestamp, payload
-										 FROM measurements
-										 ORDER BY timestamp DESC
-										 LIMIT ?`);
-			const result = await stmt.bind(limit).all();
+            // noinspection JSUnresolvedReference
+            const stmt = env.DB.prepare(
+                // language=SQL format=false
+                `SELECT timestamp, payload FROM measurements ORDER BY timestamp DESC LIMIT ?`
+            );
+            const result = await stmt.bind(limit).all();
 
-			const formatted = result.results.map(row => JSON.parse(row.payload));
+            const formatted = result.results.map(row => JSON.parse(row.payload));
 
-			// noinspection JSUnresolvedReference
-			return new Response(JSON.stringify(formatted), {
-				headers: {
-					"Content-Type": "application/json",
-					"Access-Control-Allow-Origin": env.CORS_ORIGIN,
-				}
-			});
-		} else if (request.method === "GET" && url.pathname === "/image") {
+            // noinspection JSUnresolvedReference
+            return new Response(JSON.stringify(formatted), {
+                headers: {
+                    "Content-Type": "application/json",
+                    "Access-Control-Allow-Origin": env.CORS_ORIGIN,
+                }
+            });
+        } else if (request.method === "GET" && url.pathname === "/image") {
 
-			// noinspection JSUnresolvedReference
-			const object = await env.IMAGE.get(env.IMAGE_KEY, {
-				range: request.headers,
-			});
-			if (object === null) {
-				return new Response("Object Not Found", {status: 404});
-			}
+            // noinspection JSUnresolvedReference
+            const object = await env.IMAGE.get(env.IMAGE_KEY, {
+                range: request.headers,
+            });
+            if (object === null) {
+                return new Response("Object Not Found", {status: 404});
+            }
 
-			const headers = new Headers();
-			object.writeHttpMetadata(headers);
-			headers.set("etag", object.httpEtag);
+            const headers = new Headers();
+            object.writeHttpMetadata(headers);
+            headers.set("etag", object.httpEtag);
 
-			//const timestamp = new Date(object.customMetadata.timestamp);
-			//if (timestamp) {
-				// TODO use the timestamp to generate a cache-control header
-				// TODO age should be set by the client (in a custom header probably)
-				//"cache-control": request.headers.get("cache-control") || "public,max-age=180,stale-while-revalidate=300",
-				//headers.set('cache-control', '');
-			//}
+            //const timestamp = new Date(object.customMetadata.timestamp);
+            //if (timestamp) {
+            // TODO use the timestamp to generate a cache-control header
+            // TODO age should be set by the client (in a custom header probably)
+            //"cache-control": request.headers.get("cache-control") || "public,max-age=180,stale-while-revalidate=300",
+            //headers.set('cache-control', '');
+            //}
 
-			// When no body is present, preconditions have failed
-			return new Response("body" in object ? object.body : undefined, {
-				status: "body" in object ? 200 : 404,
-				headers,
-			});
+            // When no body is present, preconditions have failed
+            return new Response("body" in object ? object.body : undefined, {
+                status: "body" in object ? 200 : 404,
+                headers,
+            });
 
-		} else if (request.method === "GET" && url.pathname === "/metar") {
-			if (env.hasOwnProperty('METAR_TEST_RESPONSE')) {
-				if (env.METAR_TEST_RESPONSE) {
-					// noinspection JSUnresolvedReference
-					return new Response(JSON.stringify(env.METAR_TEST_RESPONSE), {
-						headers: {
-							"Content-Type": "application/json",
-							"Access-Control-Allow-Origin": env.CORS_ORIGIN,
-						}
-					});
-				} else {
-					// noinspection JSUnresolvedReference
-					return new Response(null, {
-						status: 204,
-						headers: {
-							"Access-Control-Allow-Origin": env.CORS_ORIGIN,
-						}
-					});
+        } else if (request.method === "GET" && url.pathname === "/metar") {
+            if (env.hasOwnProperty('METAR_TEST_RESPONSE')) {
+                if (env.METAR_TEST_RESPONSE) {
+                    // noinspection JSUnresolvedReference
+                    return new Response(JSON.stringify(env.METAR_TEST_RESPONSE), {
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Access-Control-Allow-Origin": env.CORS_ORIGIN,
+                        }
+                    });
+                } else {
+                    // noinspection JSUnresolvedReference
+                    return new Response(null, {
+                        status: 204,
+                        headers: {
+                            "Access-Control-Allow-Origin": env.CORS_ORIGIN,
+                        }
+                    });
 
-				}
-			}
+                }
+            }
 
-			// noinspection JSUnresolvedReference
-			const metarRequest = await fetch(
-				`https://aviationweather.gov/api/data/metar?ids=${env.METAR_STATION}&format=json`,
-				{
-					headers: {
-						'User-Agent': 'casaricci/weather-test-api',
-					}
-				}
-			);
+            // noinspection JSUnresolvedReference
+            const metarRequest = await fetch(
+                `https://aviationweather.gov/api/data/metar?ids=${env.METAR_STATION}&format=json`,
+                {
+                    headers: {
+                        'User-Agent': 'casaricci/weather-test-api',
+                    }
+                }
+            );
 
-			if (metarRequest.status === 200) {
-				const metarData = await metarRequest.json();
-				if (metarData && metarData.length > 0) {
-					// noinspection JSUnresolvedReference
-					return new Response(JSON.stringify(metarData[0]), {
-						headers: {
-							"Content-Type": "application/json",
-							"Access-Control-Allow-Origin": env.CORS_ORIGIN,
-						}
-					});
-				}
-			}
+            if (metarRequest.status === 200) {
+                const metarData = await metarRequest.json();
+                if (metarData && metarData.length > 0) {
+                    // noinspection JSUnresolvedReference
+                    return new Response(JSON.stringify(metarData[0]), {
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Access-Control-Allow-Origin": env.CORS_ORIGIN,
+                        }
+                    });
+                }
+            }
 
-			// noinspection JSUnresolvedReference
-			return new Response(null, {
-				status: 204,
-				headers: {
-					"Access-Control-Allow-Origin": env.CORS_ORIGIN,
-				}
-			});
-		}
+            // noinspection JSUnresolvedReference
+            return new Response(null, {
+                status: 204,
+                headers: {
+                    "Access-Control-Allow-Origin": env.CORS_ORIGIN,
+                }
+            });
+        }
 
-		return new Response("Not found", {status: 404});
-	},
+        return new Response("Not found", {status: 404});
+    },
 };
