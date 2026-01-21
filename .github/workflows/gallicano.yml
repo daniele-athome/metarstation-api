@@ -13,6 +13,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Setup build
+        run: npm ci
+
       - name: Build and deploy Worker
         uses: cloudflare/wrangler-action@v3
         with:
