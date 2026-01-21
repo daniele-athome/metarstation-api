@@ -1,0 +1,22 @@
+name: gallicano
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production-gallicano
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Build and deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          # TODO API_TOKEN as Actions secret
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          environment: production-gallicano
