@@ -18,8 +18,11 @@ jobs:
 
       - name: Build and deploy Worker
         uses: cloudflare/wrangler-action@v3
+        env:
+          API_TOKEN: ${{ secrets.API_TOKEN }}
         with:
-          # TODO API_TOKEN as Actions secret
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          secrets: |
+            API_TOKEN
           environment: production-gallicano
