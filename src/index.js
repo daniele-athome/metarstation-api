@@ -1,95 +1,113 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
+import { AutoRouter, StatusError, json, cors } from 'itty-router'
 
-export default {
-    async fetch(request, env, ctx) {
+const withAuthenticatedUser = (request) => {
+    if (!env.API_TOKEN) {
+        // assume wrong configuration
+        throw new StatusError(401, "Unauthorized");
+    }
+
+    const auth = request.headers.get("Authorization");
+    if (!auth || auth !== `Bearer ${env.API_TOKEN}`) {
+        throw new StatusError(401, "Unauthorized");
+    }
+
+    // request processing may proceed
+};
+
+// parses JSON as request.content or returns a 400 error
+export const withJsonContent = async (request) => {
+    try {
+        request.content = await request.json();
+    } catch (err) {
+        throw new StatusError(400, 'Invalid JSON payload.');
+    }
+}
+
+// get preflight and corsify pair
+const { preflight, corsify } = cors({
+    origin: env.CORS_ORIGIN,
+})
+
+const router = AutoRouter({
+    before: [preflight],  // add preflight upstream
+    finally: [corsify],   // and corsify downstream
+})
+
+router
+    .get('/latest', async ({ query }) => {
+        const limit = parseInt(query.limit || "10");
+
+        const stmt = env.DB.prepare(
+            // language=SQL format=false
+            `SELECT timestamp, payload FROM measurements ORDER BY timestamp DESC LIMIT ?`
+        );
+        const result = await stmt.bind(limit).all();
+
+        const formatted = result.results.map(row => JSON.parse(row.payload));
+        return json(formatted);
+    })
+    .post('/push', withAuthenticatedUser, withJsonContent, async ({ data }) => {
+        try {
+            let data_list;
+            if (!Array.isArray(data)) {
+                data_list = [data];
+            } else {
+                data_list = data;
+            }
+
+            // D1 has a limit of 100 bound variables (we insert 2 columns)
+            if (data_list.length > 50) {
+                return new Response("Too much data", {status: 400});
+            }
+
+            let batch = [];
+            for (const data of data_list) {
+                let timestamp;
+                const payload_ts = data['timestamp'];
+                let parsed_ts = payload_ts ? new Date(payload_ts) : null;
+                if (parsed_ts) {
+                    timestamp = parsed_ts.toISOString();
+                } else {
+                    // invalid timestamp in payload, inject this istant
+                    timestamp = new Date().toISOString();
+                    data['timestamp'] = timestamp;
+                }
+
+                const payload = JSON.stringify(data);
+
+                batch.push(timestamp, payload);
+            }
+
+            const placeholders = Array(batch.length / 2).fill('(?, ?)').join(', ');
+            const stmt = env.DB.prepare(
+                // language=SQL format=false
+                `INSERT OR REPLACE INTO measurements (timestamp, payload) VALUES ${placeholders}`
+            );
+            await stmt.bind(...batch).run();
+
+            // clean up old entries
+            await env.DB.exec(
+                // language=SQL format=false
+                `DELETE FROM measurements WHERE timestamp < datetime('now', '-12 hours')`
+            );
+
+            return json({status: "ok"}, {
+                status: 201,
+            });
+        } catch (err) {
+            console.error(err);
+            throw new StatusError(500, err.message);
+        }
+    });
+
+export default { ...router };
+
+    async function fetch(request, env, ctx) {
         //console.log(env);
 
         const url = new URL(request.url);
 
-        if (request.method === "POST" && url.pathname === "/push") {
-            try {
-                // noinspection JSUnresolvedReference
-                if (!env.API_TOKEN) {
-                    // assume wrong configuration
-                    return new Response("Unauthorized", {status: 401});
-                }
-
-                const auth = request.headers.get("Authorization");
-
-                // noinspection JSUnresolvedReference
-                if (!auth || auth !== `Bearer ${env.API_TOKEN}`) {
-                    return new Response("Unauthorized", {status: 401});
-                }
-
-                let data_list;
-                const parsed_data = await request.json();
-                if (!Array.isArray(parsed_data)) {
-                    data_list = [parsed_data];
-                } else {
-                    data_list = parsed_data;
-                }
-
-                // D1 has a limit of 100 bound variables (we insert 2 columns)
-                if (data_list.length > 50) {
-                    return new Response("Too much data", {status: 400});
-                }
-
-                let batch = [];
-                for (const data of data_list) {
-                    let timestamp;
-                    const payload_ts = data['timestamp'];
-                    let parsed_ts = payload_ts ? new Date(payload_ts) : null;
-                    if (parsed_ts) {
-                        timestamp = parsed_ts.toISOString();
-                    } else {
-                        // invalid timestamp in payload, inject this istant
-                        timestamp = new Date().toISOString();
-                        data['timestamp'] = timestamp;
-                    }
-
-                    const payload = JSON.stringify(data);
-
-                    batch.push(timestamp, payload);
-                }
-
-                const placeholders = Array(batch.length / 2).fill('(?, ?)').join(', ');
-
-                // noinspection JSUnresolvedReference
-                const stmt = env.DB.prepare(
-                    // language=SQL format=false
-                    `INSERT OR REPLACE INTO measurements (timestamp, payload) VALUES ${placeholders}`
-                );
-                await stmt.bind(...batch).run();
-
-                // clean up old entries
-                // noinspection JSUnresolvedReference
-                await env.DB.exec(
-                    // language=SQL format=false
-                    `DELETE FROM measurements WHERE timestamp < datetime('now', '-12 hours')`
-                );
-
-                return new Response(JSON.stringify({
-                    status: "ok",
-                }), {
-                    headers: {"Content-Type": "application/json"},
-                    status: 201,
-                });
-            } catch (err) {
-                console.error(err);
-                return new Response(JSON.stringify({
-                    status: "error",
-                    error: err.message
-                }), {status: 500});
-            }
-        } else if (request.method === "POST" && url.pathname === "/image") {
+        if (request.method === "POST" && url.pathname === "/image") {
             try {
                 // noinspection JSUnresolvedReference
                 if (!env.API_TOKEN) {
@@ -138,26 +156,6 @@ export default {
                     error: err.message
                 }), {status: 500});
             }
-        } else if (request.method === "GET" && url.pathname === "/latest") {
-
-            const limit = parseInt(url.searchParams.get("limit") || "10");
-
-            // noinspection JSUnresolvedReference
-            const stmt = env.DB.prepare(
-                // language=SQL format=false
-                `SELECT timestamp, payload FROM measurements ORDER BY timestamp DESC LIMIT ?`
-            );
-            const result = await stmt.bind(limit).all();
-
-            const formatted = result.results.map(row => JSON.parse(row.payload));
-
-            // noinspection JSUnresolvedReference
-            return new Response(JSON.stringify(formatted), {
-                headers: {
-                    "Content-Type": "application/json",
-                    "Access-Control-Allow-Origin": env.CORS_ORIGIN,
-                }
-            });
         } else if (request.method === "GET" && url.pathname === "/image") {
 
             // noinspection JSUnresolvedReference
@@ -241,5 +239,4 @@ export default {
         }
 
         return new Response("Not found", {status: 404});
-    },
-};
+    }
