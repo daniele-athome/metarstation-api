@@ -19,12 +19,7 @@ router
     })
     .post('/push', withAuthenticatedUser, withJsonContent, async ({content, env}) => {
         try {
-            let data_list;
-            if (!Array.isArray(content)) {
-                data_list = [content];
-            } else {
-                data_list = content;
-            }
+            const data_list = Array.isArray(content) ? content : [content];
 
             // D1 has a limit of 100 bound variables (we insert 2 columns)
             if (data_list.length > 50) {
