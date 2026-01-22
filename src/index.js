@@ -1,40 +1,11 @@
-import { AutoRouter, StatusError, json, cors } from 'itty-router'
+import {error, IttyRouter, json, status, StatusError} from 'itty-router'
+import {corsify, withAuthenticatedUser, withEnv, withJsonContent, withRawContent, withRequestHeaders} from "./utils";
 
-const withAuthenticatedUser = (request) => {
-    if (!env.API_TOKEN) {
-        // assume wrong configuration
-        throw new StatusError(401, "Unauthorized");
-    }
-
-    const auth = request.headers.get("Authorization");
-    if (!auth || auth !== `Bearer ${env.API_TOKEN}`) {
-        throw new StatusError(401, "Unauthorized");
-    }
-
-    // request processing may proceed
-};
-
-// parses JSON as request.content or returns a 400 error
-export const withJsonContent = async (request) => {
-    try {
-        request.content = await request.json();
-    } catch (err) {
-        throw new StatusError(400, 'Invalid JSON payload.');
-    }
-}
-
-// get preflight and corsify pair
-const { preflight, corsify } = cors({
-    origin: env.CORS_ORIGIN,
-})
-
-const router = AutoRouter({
-    before: [preflight],  // add preflight upstream
-    finally: [corsify],   // and corsify downstream
-})
+const router = IttyRouter();
 
 router
-    .get('/latest', async ({ query }) => {
+    .all('*', withEnv)
+    .get('/latest', async ({query, env}) => {
         const limit = parseInt(query.limit || "10");
 
         const stmt = env.DB.prepare(
@@ -46,13 +17,13 @@ router
         const formatted = result.results.map(row => JSON.parse(row.payload));
         return json(formatted);
     })
-    .post('/push', withAuthenticatedUser, withJsonContent, async ({ data }) => {
+    .post('/push', withAuthenticatedUser, withJsonContent, async ({content, env}) => {
         try {
             let data_list;
-            if (!Array.isArray(data)) {
-                data_list = [data];
+            if (!Array.isArray(content)) {
+                data_list = [content];
             } else {
-                data_list = data;
+                data_list = content;
             }
 
             // D1 has a limit of 100 bound variables (we insert 2 columns)
@@ -98,145 +69,102 @@ router
             console.error(err);
             throw new StatusError(500, err.message);
         }
-    });
-
-export default { ...router };
-
-    async function fetch(request, env, ctx) {
-        //console.log(env);
-
-        const url = new URL(request.url);
-
-        if (request.method === "POST" && url.pathname === "/image") {
-            try {
-                // noinspection JSUnresolvedReference
-                if (!env.API_TOKEN) {
-                    // assume wrong configuration
-                    return new Response("Unauthorized", {status: 401});
-                }
-
-                const auth = request.headers.get("Authorization");
-
-                // noinspection JSUnresolvedReference
-                if (!auth || auth !== `Bearer ${env.API_TOKEN}`) {
-                    return new Response("Unauthorized", {status: 401});
-                }
-
-                if (!request.headers.has('content-type')) {
-                    return new Response("Missing content type", {status: 400});
-                }
-
-                const timestamp = url.searchParams.get('timestamp');
-                const parsed_ts = timestamp ? new Date(timestamp) : new Date();
-
-                // noinspection JSUnresolvedReference
-                await env.IMAGE.put(env.IMAGE_KEY, request.body, {
-                    httpMetadata: new Headers({
-                        "content-type": request.headers.get("content-type"),
-                        "content-length": request.headers.get("content-length") || "0",
-                        "accept-ranges": request.headers.get("accept-ranges") || "*",
-                    }),
-                    customMetadata: {
-                        // TODO an age or expire timestamp should be provided by the client
-                        'timestamp': parsed_ts.toISOString(),
-                    },
-                });
-
-                return new Response(JSON.stringify({
-                    status: "ok",
-                }), {
-                    headers: {"Content-Type": "application/json"},
-                    status: 201,
-                });
-
-            } catch (err) {
-                console.error(err);
-                return new Response(JSON.stringify({
-                    status: "error",
-                    error: err.message
-                }), {status: 500});
-            }
-        } else if (request.method === "GET" && url.pathname === "/image") {
-
-            // noinspection JSUnresolvedReference
-            const object = await env.IMAGE.get(env.IMAGE_KEY, {
-                range: request.headers,
-            });
-            if (object === null) {
-                return new Response("Object Not Found", {status: 404});
-            }
-
-            const headers = new Headers();
-            object.writeHttpMetadata(headers);
-            headers.set("etag", object.httpEtag);
-
-            //const timestamp = new Date(object.customMetadata.timestamp);
-            //if (timestamp) {
-            // TODO use the timestamp to generate a cache-control header
-            // TODO age should be set by the client (in a custom header probably)
-            //"cache-control": request.headers.get("cache-control") || "public,max-age=180,stale-while-revalidate=300",
-            //headers.set('cache-control', '');
-            //}
-
-            // When no body is present, preconditions have failed
-            return new Response("body" in object ? object.body : undefined, {
-                status: "body" in object ? 200 : 404,
-                headers,
-            });
-
-        } else if (request.method === "GET" && url.pathname === "/metar") {
-            if (env.hasOwnProperty('METAR_TEST_RESPONSE')) {
-                if (env.METAR_TEST_RESPONSE) {
-                    // noinspection JSUnresolvedReference
-                    return new Response(JSON.stringify(env.METAR_TEST_RESPONSE), {
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Access-Control-Allow-Origin": env.CORS_ORIGIN,
-                        }
-                    });
-                } else {
-                    // noinspection JSUnresolvedReference
-                    return new Response(null, {
-                        status: 204,
-                        headers: {
-                            "Access-Control-Allow-Origin": env.CORS_ORIGIN,
-                        }
-                    });
-
-                }
-            }
-
-            // noinspection JSUnresolvedReference
-            const metarRequest = await fetch(
-                `https://aviationweather.gov/api/data/metar?ids=${env.METAR_STATION}&format=json`,
-                {
-                    headers: {
-                        'User-Agent': 'casaricci/weather-test-api',
-                    }
-                }
-            );
-
-            if (metarRequest.status === 200) {
-                const metarData = await metarRequest.json();
-                if (metarData && metarData.length > 0) {
-                    // noinspection JSUnresolvedReference
-                    return new Response(JSON.stringify(metarData[0]), {
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Access-Control-Allow-Origin": env.CORS_ORIGIN,
-                        }
-                    });
-                }
-            }
-
-            // noinspection JSUnresolvedReference
-            return new Response(null, {
-                status: 204,
-                headers: {
-                    "Access-Control-Allow-Origin": env.CORS_ORIGIN,
-                }
-            });
+    })
+    .get('/image', withRequestHeaders, async ({env, requestHeaders}) => {
+        const object = await env.IMAGE.get(env.IMAGE_KEY, {
+            range: requestHeaders,
+        });
+        if (object === null) {
+            throw new StatusError(404, "Object not found");
         }
 
-        return new Response("Not found", {status: 404});
-    }
+        const headers = new Headers();
+        object.writeHttpMetadata(headers);
+        headers.set("etag", object.httpEtag);
+
+        //const timestamp = new Date(object.customMetadata.timestamp);
+        //if (timestamp) {
+        // TODO use the timestamp to generate a cache-control header
+        // TODO age should be set by the client (in a custom header probably)
+        //"cache-control": request.headers.get("cache-control") || "public,max-age=180,stale-while-revalidate=300",
+        //headers.set('cache-control', '');
+        //}
+
+        // When no body is present, preconditions have failed
+        return new Response("body" in object ? object.body : undefined, {
+            status: "body" in object ? 200 : 404,
+            headers,
+        });
+    })
+    .post('/image', withAuthenticatedUser, withRawContent, withRequestHeaders, async ({
+                                                                                          query,
+                                                                                          requestHeaders,
+                                                                                          content,
+                                                                                          env
+                                                                                      }) => {
+        try {
+            if (!requestHeaders.has('content-type')) {
+                return new Response("Missing content type", {status: 400});
+            }
+
+            const timestamp = query.timestamp;
+            const parsed_ts = timestamp ? new Date(timestamp) : new Date();
+
+            await env.IMAGE.put(env.IMAGE_KEY, content, {
+                httpMetadata: new Headers({
+                    "content-type": requestHeaders.get("content-type"),
+                    "content-length": requestHeaders.get("content-length") || "0",
+                    "accept-ranges": requestHeaders.get("accept-ranges") || "*",
+                }),
+                customMetadata: {
+                    // TODO an age or expire timestamp should be provided by the client
+                    'timestamp': parsed_ts.toISOString(),
+                },
+            });
+
+            return json({status: "ok"}, {
+                status: 201,
+            });
+
+        } catch (err) {
+            console.error(err);
+            throw new StatusError(500, {
+                error: err.message,
+            });
+        }
+    })
+    .get('/metar', async ({env}) => {
+        if (env.hasOwnProperty('METAR_TEST_RESPONSE')) {
+            if (env.METAR_TEST_RESPONSE) {
+                return json(env.METAR_TEST_RESPONSE);
+            } else {
+                return status(204);
+            }
+        }
+
+        const metarRequest = await fetch(
+            `https://aviationweather.gov/api/data/metar?ids=${env.METAR_STATION}&format=json`,
+            {
+                headers: {
+                    'User-Agent': 'daniele-athome/metarstation-api',
+                }
+            }
+        );
+
+        if (metarRequest.status === 200) {
+            const metarData = await metarRequest.json();
+            if (metarData && metarData.length > 0) {
+                return json(metarData[0]);
+            }
+        }
+
+        return status(204);
+    });
+
+export default {
+    fetch: async (request, env, ctx) =>
+        await router
+            .fetch(request, env)
+            .catch(error)
+            .then((response) => corsify(response, request))
+}
