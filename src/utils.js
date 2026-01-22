@@ -1,4 +1,4 @@
-import {IttyRouter, json} from "itty-router";
+import {StatusError} from "itty-router";
 
 export const withAuthenticatedUser = (request, env) => {
     if (!env.API_TOKEN) {
