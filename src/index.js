@@ -157,8 +157,8 @@ router
     });
 
 export default {
-    fetch: async (request, env, ctx) =>
-        await router
+    fetch: (request, env, ctx) =>
+        router
             .fetch(request, env)
             .catch(error)
             .then((response) => corsify(response, request))
