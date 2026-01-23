@@ -38,9 +38,7 @@ export const withRawContent = (request) => {
 export const corsify = (response, request) => {
     const r = response.clone();
     const origin = request.headers.get('Origin');
-    if (origin === request.env.CORS_ORIGIN) {
-        r.headers.append('access-control-allow-origin', request.env.CORS_ORIGIN);
-        r.headers.append('vary', 'origin');
-    }
+    r.headers.append('access-control-allow-origin',
+        request.env.CORS_ORIGIN === '*' ? origin : request.env.CORS_ORIGIN);
     return r;
 }
