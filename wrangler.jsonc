@@ -7,6 +7,7 @@
   "name": "weather-station",
   "main": "src/index.js",
   "compatibility_date": "2025-11-21",
+  "minify": true,
   "observability": {
     "enabled": true
   },
