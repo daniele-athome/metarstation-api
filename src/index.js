@@ -158,6 +158,9 @@ router
         }
 
         return status(204);
+    })
+    .all("*", () => {
+        throw new StatusError(404);
     });
 
 export default {
