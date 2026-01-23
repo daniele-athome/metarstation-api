@@ -95,12 +95,7 @@ router
             headers,
         });
     })
-    .post('/image', withAuthenticatedUser, withRawContent, withRequestHeaders, async ({
-                                                                                          query,
-                                                                                          requestHeaders,
-                                                                                          content,
-                                                                                          env
-                                                                                      }) => {
+    .post('/image', withAuthenticatedUser, withRawContent, withRequestHeaders, async ({query, requestHeaders, content, env}) => {
         try {
             if (!requestHeaders.has('content-type')) {
                 return new Response("Missing content type", {status: 400});
