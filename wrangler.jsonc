@@ -59,6 +59,35 @@
         }
       }
     },
+    "staging": {
+      "routes": [
+        {
+          "pattern": "staging.weather-station.work/*",
+          "zone_name": "weather-station.work"
+        }
+      ],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "weather_staging",
+          "database_id": "f0740c43-7321-464c-842f-78c0587933a9",
+          "remote": true
+        }
+      ],
+      "vars": {
+        // API_TOKEN is a secret
+        "CORS_ORIGIN": "http://localhost:5173",
+        "IMAGE_KEY": "webcam-default",
+        "METAR_STATION": "LIRF"
+      },
+      "r2_buckets": [
+        {
+          "bucket_name": "weather-staging",
+          "binding": "IMAGE",
+          "remote": true
+        }
+      ]
+    },
     "production-gallicano": {
       "routes": [
         {
@@ -83,7 +112,8 @@
       "r2_buckets": [
         {
           "bucket_name": "weather-gallicano",
-          "binding": "IMAGE"
+          "binding": "IMAGE",
+          "remote": true
         }
       ]
     }

@@ -1,0 +1,28 @@
+name: staging
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup build
+        run: npm ci
+
+      - name: Build and deploy Worker
+        uses: cloudflare/wrangler-action@v3
+        env:
+          API_TOKEN: ${{ secrets.API_TOKEN }}
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          secrets: |
+            API_TOKEN
+          environment: staging
