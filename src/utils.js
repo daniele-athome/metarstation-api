@@ -27,14 +27,6 @@ export const withEnv = (request, env) => {
     request.env = env;
 };
 
-export const withRequestHeaders = (request) => {
-    request.requestHeaders = request.headers;
-}
-
-export const withRawContent = (request) => {
-    request.content = request.body;
-}
-
 export const corsify = (response, request) => {
     const r = response.clone();
     const origin = request.headers.get('Origin');

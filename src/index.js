@@ -3,7 +3,7 @@ import {IttyRouter} from 'itty-router/IttyRouter';
 import {json} from 'itty-router/json';
 import {status} from 'itty-router/status';
 import {StatusError} from 'itty-router/StatusError';
-import {corsify, withAuthenticatedUser, withEnv, withJsonContent, withRawContent, withRequestHeaders} from "./utils";
+import {corsify, withAuthenticatedUser, withEnv, withJsonContent} from "./utils";
 
 const router = IttyRouter();
 
@@ -69,9 +69,9 @@ router
             throw new StatusError(500, err.message);
         }
     })
-    .get('/image', withRequestHeaders, async ({env, requestHeaders}) => {
+    .get('/image', async (request, env) => {
         const object = await env.IMAGE.get(env.IMAGE_KEY, {
-            range: requestHeaders,
+            range: request.headers,
         });
         if (object === null) {
             throw new StatusError(404, "Object not found");
@@ -95,20 +95,20 @@ router
             headers,
         });
     })
-    .post('/image', withAuthenticatedUser, withRawContent, withRequestHeaders, async ({query, requestHeaders, content, env}) => {
+    .post('/image', withAuthenticatedUser, async (request, env) => {
         try {
-            if (!requestHeaders.has('content-type')) {
+            if (!request.headers.has('content-type')) {
                 return new Response("Missing content type", {status: 400});
             }
 
-            const timestamp = query.timestamp;
+            const timestamp = request.query.timestamp;
             const parsed_ts = timestamp ? new Date(timestamp) : new Date();
 
-            await env.IMAGE.put(env.IMAGE_KEY, content, {
+            await env.IMAGE.put(env.IMAGE_KEY, request.body, {
                 httpMetadata: new Headers({
-                    "content-type": requestHeaders.get("content-type"),
-                    "content-length": requestHeaders.get("content-length") || "0",
-                    "accept-ranges": requestHeaders.get("accept-ranges") || "*",
+                    "content-type": request.headers.get("content-type"),
+                    "content-length": request.headers.get("content-length") || "0",
+                    "accept-ranges": request.headers.get("accept-ranges") || "*",
                 }),
                 customMetadata: {
                     // TODO an age or expire timestamp should be provided by the client
