@@ -1,4 +1,8 @@
-import {error, IttyRouter, json, status, StatusError} from 'itty-router'
+import {error} from 'itty-router/error';
+import {IttyRouter} from 'itty-router/IttyRouter';
+import {json} from 'itty-router/json';
+import {status} from 'itty-router/status';
+import {StatusError} from 'itty-router/StatusError';
 import {corsify, withAuthenticatedUser, withEnv, withJsonContent, withRawContent, withRequestHeaders} from "./utils";
 
 const router = IttyRouter();
