@@ -3,7 +3,21 @@ import {IttyRouter} from 'itty-router/IttyRouter';
 import {json} from 'itty-router/json';
 import {status} from 'itty-router/status';
 import {StatusError} from 'itty-router/StatusError';
-import {corsify, withAuthenticatedUser, withEnv, withJsonContent} from "./utils";
+import {corsify, withEnv, withJsonContent} from "./utils";
+
+const withAuthenticatedUser = (request, env) => {
+    if (!env.API_TOKEN) {
+        // assume wrong configuration
+        throw new StatusError(401, "Unauthorized");
+    }
+
+    const auth = request.headers.get("Authorization");
+    if (!auth || auth !== `Bearer ${env.API_TOKEN}`) {
+        throw new StatusError(401, "Unauthorized");
+    }
+
+    // request processing may proceed
+};
 
 const router = IttyRouter();
 
@@ -185,5 +199,5 @@ export default {
         router
             .fetch(request, env)
             .catch(error)
-            .then((response) => corsify(response, request))
+            .then((response) => corsify(env.CORS_ORIGIN, response, request))
 }
