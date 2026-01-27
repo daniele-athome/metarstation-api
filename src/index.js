@@ -7,12 +7,17 @@ import {corsify, withAuthenticatedUser, withEnv, withJsonContent} from "./utils"
 
 const router = IttyRouter();
 
+// noinspection JSCheckFunctionSignatures
 router
     .all('*', withEnv)
     .get('/latest', async ({query, env}) => {
         const limit = parseInt(query.limit || "10");
 
-        const stmt = env.DB.prepare(
+        /**
+         * @var {D1Database}
+         */
+        const db = env.DB;
+        const stmt = db.prepare(
             // language=SQL format=false
             `SELECT timestamp, payload FROM measurements ORDER BY timestamp DESC LIMIT ?`
         );
@@ -49,14 +54,18 @@ router
             }
 
             const placeholders = Array(batch.length / 2).fill('(?, ?)').join(', ');
-            const stmt = env.DB.prepare(
+            /**
+             * @var {D1Database}
+             */
+            const db = env.DB;
+            const stmt = db.prepare(
                 // language=SQL format=false
                 `INSERT OR REPLACE INTO measurements (timestamp, payload) VALUES ${placeholders}`
             );
             await stmt.bind(...batch).run();
 
             // clean up old entries
-            await env.DB.exec(
+            await db.exec(
                 // language=SQL format=false
                 `DELETE FROM measurements WHERE timestamp < datetime('now', '-12 hours')`
             );
@@ -70,7 +79,11 @@ router
         }
     })
     .get('/image', async (request, env) => {
-        const object = await env.IMAGE.get(env.IMAGE_KEY, {
+        /**
+         * @var {R2Bucket}
+         */
+        const db = env.IMAGE;
+        const object = await db.get(env.IMAGE_KEY, {
             range: request.headers,
         });
         if (object === null) {
@@ -104,7 +117,11 @@ router
             const timestamp = request.query.timestamp;
             const parsed_ts = timestamp ? new Date(timestamp) : new Date();
 
-            await env.IMAGE.put(env.IMAGE_KEY, request.body, {
+            /**
+             * @var {R2Bucket}
+             */
+            const db = env.IMAGE;
+            await db.put(env.IMAGE_KEY, request.body, {
                 httpMetadata: new Headers({
                     "content-type": request.headers.get("content-type"),
                     "content-length": request.headers.get("content-length") || "0",
@@ -159,6 +176,11 @@ router
     });
 
 export default {
+    /**
+     * @param {*} request
+     * @param {ProvidedEnv} env
+     * @param {ExecutionContext} ctx
+     */
     fetch: (request, env, ctx) =>
         router
             .fetch(request, env)
