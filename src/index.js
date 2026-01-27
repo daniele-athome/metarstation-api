@@ -133,7 +133,7 @@ router
 
             // client provides an expiration timestamp that will be used for cache-control max-age
             const expire_ts = request.query.expire;
-            const parsed_ts = expire_ts ? new Date(expire_ts) : null;
+            const parsed_ts = expire_ts ? Date.parse(expire_ts) : null;
 
             /**
              * @var {R2Bucket}
@@ -146,7 +146,7 @@ router
                     "accept-ranges": request.headers.get("accept-ranges") || "*",
                 }),
                 customMetadata: {
-                    'expire': parsed_ts ? Math.floor(parsed_ts.getTime() / 1000) : null,
+                    'expire': parsed_ts ? Math.floor(parsed_ts / 1000) : null,
                 },
             });
 
