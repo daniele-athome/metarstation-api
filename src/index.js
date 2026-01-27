@@ -109,13 +109,15 @@ router
         object.writeHttpMetadata(headers);
         headers.set("etag", object.httpEtag);
 
-        //const timestamp = new Date(object.customMetadata.timestamp);
-        //if (timestamp) {
-        // TODO use the timestamp to generate a cache-control header
-        // TODO age should be set by the client (in a custom header probably)
-        //"cache-control": request.headers.get("cache-control") || "public,max-age=180,stale-while-revalidate=300",
-        //headers.set('cache-control', '');
-        //}
+        const expire_ts = object.customMetadata.expire;
+        if (expire_ts) {
+            const current_ts = Math.floor(Date.now() / 1000);
+            // calculate max-age from expire timestamp
+            const max_age = parseInt(expire_ts) - current_ts;
+            if (max_age > 0) {
+                headers.set("cache-control", `max-age=${max_age}`);
+            }
+        }
 
         // When no body is present, preconditions have failed
         return new Response("body" in object ? object.body : undefined, {
@@ -129,8 +131,9 @@ router
                 return new Response("Missing content type", {status: 400});
             }
 
-            const timestamp = request.query.timestamp;
-            const parsed_ts = timestamp ? new Date(timestamp) : new Date();
+            // client provides an expiration timestamp that will be used for cache-control max-age
+            const expire_ts = request.query.expire;
+            const parsed_ts = expire_ts ? new Date(expire_ts) : null;
 
             /**
              * @var {R2Bucket}
@@ -143,8 +146,7 @@ router
                     "accept-ranges": request.headers.get("accept-ranges") || "*",
                 }),
                 customMetadata: {
-                    // TODO an age or expire timestamp should be provided by the client
-                    'timestamp': parsed_ts.toISOString(),
+                    'expire': parsed_ts ? Math.floor(parsed_ts.getTime() / 1000) : null,
                 },
             });
 
