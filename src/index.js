@@ -113,10 +113,11 @@ router
         if (expire_ts) {
             const current_ts = Math.floor(Date.now() / 1000);
             // calculate max-age from expire timestamp
-            const max_age = parseInt(expire_ts) - current_ts;
-            if (max_age > 0) {
-                headers.set("cache-control", `max-age=${max_age}`);
+            let max_age = parseInt(expire_ts) - current_ts;
+            if (max_age <= 0) {
+                max_age = 0;
             }
+            headers.set("cache-control", `max-age=${max_age}`);
         }
 
         // When no body is present, preconditions have failed
