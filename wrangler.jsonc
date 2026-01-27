@@ -8,6 +8,7 @@
   "main": "src/index.js",
   "compatibility_date": "2025-11-21",
   "minify": true,
+  "upload_source_maps": true,
   "observability": {
     "enabled": true
   },
