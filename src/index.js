@@ -98,6 +98,7 @@ router
          */
         const db = env.IMAGE;
         const object = await db.get(env.IMAGE_KEY, {
+            onlyIf: request.headers,
             range: request.headers,
         });
         if (object === null) {
@@ -118,7 +119,7 @@ router
 
         // When no body is present, preconditions have failed
         return new Response("body" in object ? object.body : undefined, {
-            status: "body" in object ? 200 : 404,
+            status: "body" in object ? 200 : 304,
             headers,
         });
     })
