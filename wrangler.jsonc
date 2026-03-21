@@ -106,7 +106,7 @@
       ],
       "vars": {
         // API_TOKEN is a secret
-        "CORS_ORIGIN": "https://daniele-athome.github.io",
+        "CORS_ORIGIN": "https://meteo.aviocaipoli.it",
         "IMAGE_KEY": "webcam-default",
         "METAR_STATION": "LIRG"
       },
