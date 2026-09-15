@@ -108,6 +108,7 @@ router
         const headers = new Headers();
         object.writeHttpMetadata(headers);
         headers.set("etag", object.httpEtag);
+        headers.set("last-modified", object.uploaded.toUTCString());
 
         const expire_ts = object.customMetadata.expire;
         if (expire_ts) {
