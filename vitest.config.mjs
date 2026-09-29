@@ -8,6 +8,7 @@ export default defineConfig({
             const migrations = await readD1Migrations({migrationsDir: 'migrations'});
 
             return {
+                verbose: false,
                 wrangler: {
                     configPath: './wrangler.jsonc',
                     environment: 'local',
