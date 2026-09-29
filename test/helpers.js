@@ -47,6 +47,18 @@ export const seed = async (...measurements) => {
     );
 };
 
+// bulk seeding, left to SQLite so that hundreds of rows cost a single statement
+export const seedMany = async (count) => {
+    await env.DB.prepare(
+        // language=SQL format=false
+        `INSERT INTO measurements (timestamp, payload)
+         WITH RECURSIVE seq(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM seq WHERE n < ?)
+         SELECT strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-' || n || ' seconds'),
+                '{"n":' || n || '}'
+         FROM seq`
+    ).bind(count).run();
+};
+
 // every stored row, newest first, with the payload parsed back
 export const storedMeasurements = async () => {
     const {results} = await env.DB.prepare(
