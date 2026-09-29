@@ -19,6 +19,9 @@ const withAuthenticatedUser = (request, env) => {
     // request processing may proceed
 };
 
+// measurements older than this are deleted on every push
+const DATA_RETENTION = '-12 hours';
+
 const router = IttyRouter();
 
 // noinspection JSCheckFunctionSignatures
@@ -81,7 +84,7 @@ router
             // clean up old entries
             await db.exec(
                 // language=SQL format=false
-                `DELETE FROM measurements WHERE timestamp < datetime('now', '-12 hours')`
+                `DELETE FROM measurements WHERE timestamp < strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '${DATA_RETENTION}')`
             );
 
             return json({status: "ok"}, {
