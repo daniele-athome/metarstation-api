@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "wrangler dev --env local",
     "start": "wrangler dev --env local",
-    "test": "vitest",
+    "test": "vitest --run",
     "migrate": "wrangler d1 migrations apply weather_test --env local --local",
     "migrate:staging": "wrangler d1 migrations apply weather_staging --env staging --remote",
     "migrate:production-gallicano": "wrangler d1 migrations apply weather_gallicano --env production-gallicano --remote",
@@ -13,9 +13,9 @@
     "deploy:production-gallicano": "wrangler deploy --env production-gallicano"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.12.7",
+    "@cloudflare/vitest-pool-workers": "^0.22.0",
     "@cloudflare/workers-types": "^4.20260127.0",
-    "vitest": "~3.2.0",
+    "vitest": "^4.1.11",
     "wrangler": "^4.60.0"
   },
   "dependencies": {
