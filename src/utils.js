@@ -16,7 +16,7 @@ export const withEnv = (request, env) => {
 export const corsify = (allowedOrigin, response, request) => {
     const r = response.clone();
     const origin = request.headers.get('Origin');
-    r.headers.append('access-control-allow-origin',
-        allowedOrigin === '*' ? origin : allowedOrigin);
+    r.headers.set('access-control-allow-origin',
+        allowedOrigin === '*' ? (origin || '*') : allowedOrigin);
     return r;
 }

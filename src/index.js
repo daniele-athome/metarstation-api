@@ -190,6 +190,15 @@ router
 
         return status(204);
     })
+    // the allow-origin header is added by corsify
+    .options('*', () => new Response(null, {
+        status: 204,
+        headers: {
+            'access-control-allow-methods': 'GET, POST, OPTIONS',
+            'access-control-allow-headers': 'Authorization, Content-Type, If-None-Match, If-Modified-Since',
+            'access-control-max-age': '86400',
+        },
+    }))
     .all("*", () => {
         throw new StatusError(404);
     });
