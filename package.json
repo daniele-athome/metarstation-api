@@ -13,7 +13,7 @@
     "deploy:production-gallicano": "wrangler deploy --env production-gallicano"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "^0.22.0",
+    "@cloudflare/vitest-plugin": "^1.0.0",
     "@cloudflare/workers-types": "^4.20260127.0",
     "vitest": "^4.1.11",
     "wrangler": "^4.60.0"
