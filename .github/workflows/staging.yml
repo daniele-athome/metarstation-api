@@ -26,3 +26,13 @@ jobs:
           secrets: |
             API_TOKEN
           environment: staging
+
+      - name: Run database migrations
+        uses: cloudflare/wrangler-action@v4
+        env:
+          API_TOKEN: ${{ secrets.API_TOKEN }}
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          environment: staging
+          command: d1 migrations apply weather_staging
