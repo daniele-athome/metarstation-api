@@ -61,6 +61,13 @@ router
         try {
             const data_list = Array.isArray(content) ? content : [content];
 
+            // nothing to store
+            if (data_list.length === 0) {
+                return json({status: "ok"}, {
+                    status: 201,
+                });
+            }
+
             // D1 has a limit of 100 bound variables (we insert 2 columns)
             if (data_list.length > 50) {
                 return new Response("Too much data", {status: 400});
