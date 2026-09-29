@@ -47,6 +47,15 @@ export const seed = async (...measurements) => {
     );
 };
 
+// every stored row, newest first, with the payload parsed back
+export const storedMeasurements = async () => {
+    const {results} = await env.DB.prepare(
+        // language=SQL format=false
+        `SELECT timestamp, payload FROM measurements ORDER BY timestamp DESC`
+    ).all();
+    return results.map((row) => ({timestamp: row.timestamp, payload: JSON.parse(row.payload)}));
+};
+
 export const countMeasurements = async () => {
     const row = await env.DB.prepare(
         // language=SQL format=false
