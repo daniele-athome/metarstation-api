@@ -19,6 +19,8 @@ const withAuthenticatedUser = (request, env) => {
     // request processing may proceed
 };
 
+// maximum number of rows returned by /latest
+const MAX_LIMIT = 500;
 // measurements older than this are deleted on every push
 const DATA_RETENTION = '-12 hours';
 
@@ -28,7 +30,19 @@ const router = IttyRouter();
 router
     .all('*', withEnv)
     .get('/latest', async ({query, env}) => {
-        const limit = parseInt(query.limit || "10");
+        // the router parses a repeated query parameter as an array
+        const raw_limit = query.limit;
+        let limit = 10;
+        if (raw_limit !== undefined) {
+            if (typeof raw_limit !== 'string' || !/^\d+$/.test(raw_limit)) {
+                throw new StatusError(400, "Invalid limit");
+            }
+            limit = parseInt(raw_limit, 10);
+            if (limit < 1) {
+                throw new StatusError(400, "Invalid limit");
+            }
+            limit = Math.min(limit, MAX_LIMIT);
+        }
 
         /**
          * @var {D1Database}
