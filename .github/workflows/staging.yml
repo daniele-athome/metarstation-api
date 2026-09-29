@@ -11,13 +11,13 @@ jobs:
     environment: staging
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup build
         run: npm ci
 
       - name: Build and deploy Worker
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         env:
           API_TOKEN: ${{ secrets.API_TOKEN }}
         with:
