@@ -16,7 +16,8 @@ export const withEnv = (request, env) => {
 export const corsify = (allowedOrigin, response, request) => {
     const r = response.clone();
     const origin = request.headers.get('Origin');
+    // an unconfigured origin behaves like '*': better than sending a broken header
     r.headers.set('access-control-allow-origin',
-        allowedOrigin === '*' ? (origin || '*') : allowedOrigin);
+        (!allowedOrigin || allowedOrigin === '*') ? (origin || '*') : allowedOrigin);
     return r;
 }
