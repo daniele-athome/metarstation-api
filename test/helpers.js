@@ -47,6 +47,21 @@ export const seed = async (...measurements) => {
     );
 };
 
+// a few bytes that look like a JPEG, with a tail that changes with the marker
+export const imageBytes = (marker = 0) =>
+    new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, marker, 0xd9]);
+
+// a POST /image request, authenticated unless token is explicitly set to null
+export const imageRequest = (body, {token = env.API_TOKEN, contentType = 'image/jpeg', query = ''} = {}) =>
+    new Request(url(`/image${query}`), {
+        method: 'POST',
+        headers: {
+            ...(contentType ? {'content-type': contentType} : {}),
+            ...(token ? {authorization: `Bearer ${token}`} : {}),
+        },
+        body,
+    });
+
 // bulk seeding, left to SQLite so that hundreds of rows cost a single statement
 export const seedMany = async (count) => {
     await env.DB.prepare(
