@@ -75,13 +75,20 @@ router
 
             let batch = [];
             for (const data of data_list) {
+                if (typeof data !== 'object' || data === null) {
+                    return new Response("Invalid payload", {status: 400});
+                }
+
                 let timestamp;
                 const payload_ts = data['timestamp'];
                 let parsed_ts = payload_ts ? new Date(payload_ts) : null;
-                if (parsed_ts) {
+                if (parsed_ts && !isNaN(parsed_ts.getTime())) {
                     timestamp = parsed_ts.toISOString();
                 } else {
-                    // invalid timestamp in payload, inject this istant
+                    // missing or invalid timestamp in payload, inject this istant
+                    if (payload_ts) {
+                        console.warn(`Invalid timestamp in payload: ${payload_ts}`);
+                    }
                     timestamp = new Date().toISOString();
                     data['timestamp'] = timestamp;
                 }
