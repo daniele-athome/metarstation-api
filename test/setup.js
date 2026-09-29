@@ -1,18 +1,11 @@
-import {applyD1Migrations} from 'cloudflare:test';
+import {applyD1Migrations, reset} from 'cloudflare:test';
 import {env} from "cloudflare:workers"
 import {beforeEach} from 'vitest';
 
-// Runs once per test file: the schema is created here and kept for every test in the file.
-await applyD1Migrations(env.DB, env.TEST_MIGRATIONS);
-
-// vitest-pool-workers dropped the isolatedStorage option in 0.22.0, so tests no longer get
-// a storage rollback between them: data written by a test is wiped here instead.
+// Storage is isolated per test file, not per test. reset() wipes every attached binding by
+// deleting the Durable Objects backing them, which drops the D1 schema as well, so the
+// migrations have to be applied again right after it.
 beforeEach(async () => {
-    await env.DB.prepare(
-        // language=SQL format=false
-        `DELETE FROM measurements`
-    ).run();
-
-    const {objects} = await env.IMAGE.list();
-    await Promise.all(objects.map((object) => env.IMAGE.delete(object.key)));
+    await reset();
+    await applyD1Migrations(env.DB, env.TEST_MIGRATIONS);
 });

@@ -37,8 +37,8 @@ describe('test environment', () => {
     });
 
     it('starts every test with an empty table, schema included', async () => {
-        // the previous test seeded a measurement: the setup file must have wiped it,
-        // while keeping the migrated schema
+        // the previous test seeded a measurement: the setup file must have wiped it and
+        // migrated the database again
         expect(await countMeasurements()).toBe(0);
     });
 
