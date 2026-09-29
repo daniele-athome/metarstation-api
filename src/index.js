@@ -123,7 +123,6 @@ router
         const db = env.IMAGE;
         const object = await db.get(env.IMAGE_KEY, {
             onlyIf: request.headers,
-            range: request.headers,
         });
         if (object === null) {
             throw new StatusError(404, "Object not found");
@@ -134,14 +133,12 @@ router
         headers.set("etag", object.httpEtag);
         headers.set("last-modified", object.uploaded.toUTCString());
 
-        const expire_ts = object.customMetadata.expire;
-        if (expire_ts) {
+        const expire_ts = object.customMetadata?.expire;
+        const expire = expire_ts ? parseInt(expire_ts, 10) : NaN;
+        if (Number.isFinite(expire)) {
             const current_ts = Math.floor(Date.now() / 1000);
             // calculate max-age from expire timestamp
-            let max_age = parseInt(expire_ts) - current_ts;
-            if (max_age <= 0) {
-                max_age = 0;
-            }
+            const max_age = Math.max(expire - current_ts, 0);
             headers.set("cache-control", `max-age=${max_age}`);
         }
 
@@ -159,21 +156,25 @@ router
 
             // client provides an expiration timestamp that will be used for cache-control max-age
             const expire_ts = request.query.expire;
-            const parsed_ts = expire_ts ? Date.parse(expire_ts) : null;
+            let expire = null;
+            if (expire_ts !== undefined) {
+                const parsed_ts = typeof expire_ts === 'string' ? Date.parse(expire_ts) : NaN;
+                if (isNaN(parsed_ts)) {
+                    return new Response("Invalid expire", {status: 400});
+                }
+                // custom metadata values must be strings
+                expire = String(Math.floor(parsed_ts / 1000));
+            }
 
             /**
              * @var {R2Bucket}
              */
             const db = env.IMAGE;
             await db.put(env.IMAGE_KEY, request.body, {
-                httpMetadata: new Headers({
-                    "content-type": request.headers.get("content-type"),
-                    "content-length": request.headers.get("content-length") || "0",
-                    "accept-ranges": request.headers.get("accept-ranges") || "*",
-                }),
-                customMetadata: {
-                    'expire': parsed_ts ? Math.floor(parsed_ts / 1000) : null,
+                httpMetadata: {
+                    contentType: request.headers.get("content-type"),
                 },
+                customMetadata: expire !== null ? {expire} : undefined,
             });
 
             return json({status: "ok"}, {
