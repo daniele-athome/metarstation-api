@@ -35,4 +35,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           environment: staging
-          command: d1 migrations apply weather_staging
+          command: d1 migrations apply weather_staging --remote
