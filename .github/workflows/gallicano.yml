@@ -26,3 +26,13 @@ jobs:
           secrets: |
             API_TOKEN
           environment: production-gallicano
+
+      - name: Run database migrations
+        uses: cloudflare/wrangler-action@v4
+        env:
+          API_TOKEN: ${{ secrets.API_TOKEN }}
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          environment: production-gallicano
+          command: d1 migrations apply weather_gallicano --remote
