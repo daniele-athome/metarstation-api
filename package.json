@@ -13,10 +13,10 @@
     "deploy:production-gallicano": "wrangler deploy --env production-gallicano"
   },
   "devDependencies": {
-    "@cloudflare/vitest-plugin": "^1.0.0",
+    "@cloudflare/vitest-plugin": "^1.4.11",
     "@cloudflare/workers-types": "^5.20260926.1",
     "vitest": "^4.1.11",
-    "wrangler": "^4.143.1"
+    "wrangler": "^4.156.0"
   },
   "dependencies": {
     "itty-router": "^5.0.22"
